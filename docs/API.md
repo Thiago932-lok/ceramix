@@ -9,6 +9,35 @@ Referência dos contratos HTTP do Ceramix. A API é versionada junto com o app; 
 
 ## Autenticação e sessão
 
+### `POST /auth/registrar`
+
+Público. Cria uma nova empresa, o primeiro usuário com o cargo escolhido e um catálogo inicial, devolvendo a sessão já autenticada. Limite de 10 cadastros por hora por IP.
+
+```json
+{
+  "nome": "Marina Costa",
+  "empresa": "Cerâmica Costa",
+  "cnpj": "11.222.333/0001-44",
+  "login": "marina.costa",
+  "senha": "senha-forte-123",
+  "cargo": "gestor",
+  "dispositivoId": "3f0e6f1c-8b26-4b1d-9c3a-6f7d2a5b8e41",
+  "dispositivoNome": "Ceramix PWA"
+}
+```
+
+Regras:
+
+- `cargo` aceita `admin`, `gestor`, `supervisor`, `operador`, `conferente` ou `motorista` e é gravado como perfil de acesso (RBAC). O login não recebe cargo.
+- `cnpj` é opcional; quando informado, precisa ter 14 dígitos (a formatação é removida).
+- `login` é normalizado para minúsculas, aceita de 3 a 40 caracteres (`a-z`, `0-9`, `.`, `_`, `-`) e é único em toda a base.
+- `senha` tem no mínimo 8 e no máximo 72 caracteres.
+- O catálogo inicial contém três turnos, cinco motivos de refugo, um produto, um lote, um cliente, uma obra, um veículo e uma meta de 1.200 peças por dia.
+
+**201** — mesmo formato do login, incluindo `empresaNome` no usuário. Também define os cookies de sessão.
+
+Erros: `400` validação, `409` login já utilizado, `429` limite de cadastros.
+
 ### `POST /auth/login`
 
 Público. Limite de 20 tentativas por 15 minutos por IP. Cinco falhas consecutivas bloqueiam a conta por 15 minutos.
@@ -36,7 +65,8 @@ Público. Limite de 20 tentativas por 15 minutos por IP. Cinco falhas consecutiv
     "nome": "João Operador",
     "login": "operador",
     "perfil": "operador",
-    "empresaId": "<uuid>"
+    "empresaId": "<uuid>",
+    "empresaNome": "Cerâmica Integra Ltda"
   }
 }
 ```
@@ -72,6 +102,7 @@ Autenticado. Devolve o usuário resolvido pelo token e o dispositivo atual.
   "usuario": {
     "id": "<uuid>",
     "empresaId": "<uuid>",
+    "empresaNome": "Cerâmica Integra Ltda",
     "nome": "João Operador",
     "login": "operador",
     "perfil": "operador"
@@ -151,7 +182,7 @@ Autenticado. Devolve todo o catálogo ativo da empresa para cache local.
 }
 ```
 
-Perfis aceitos: `admin`, `gestor`, `supervisor`, `operador`, `conferente`, `motorista`. A senha tem mínimo de 6 caracteres. `409` se o login existir.
+Perfis aceitos: `admin`, `gestor`, `supervisor`, `operador`, `conferente`, `motorista`. A senha tem mínimo de 6 caracteres. O login é único em toda a base; `409` se já existir.
 
 ### Dispositivos
 
@@ -397,7 +428,7 @@ Público.
 {
   "ok": true,
   "servico": "ceramix-api",
-  "versao": "1.1.0",
+  "versao": "1.2.0",
   "ambiente": "production",
   "banco": "ok",
   "uptime_s": 120,
@@ -424,7 +455,7 @@ Formato padrão:
 | `409`  | Duplicidade ou cancelamento bloqueado por estoque expedido              |
 | `413`  | Corpo acima de 1 MB                                                     |
 | `423`  | Conta temporariamente bloqueada por tentativas de login                 |
-| `429`  | Rate limit global ou de login                                           |
+| `429`  | Rate limit global, de login ou de cadastro                              |
 | `500`  | Erro inesperado; mensagem genérica + `requisicao_id`                    |
 
 A matriz de permissões completa está em [ARQUITETURA.md](ARQUITETURA.md#7-matriz-de-permissões).

@@ -1,3 +1,4 @@
+import { randomUUID } from 'node:crypto'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import { criarAmbiente } from './helpers.js'
 
@@ -128,6 +129,61 @@ describe('cadastro de conta', () => {
 
     const loginInvalido = await registrar({ login: 'nome com espaço' })
     expect(loginInvalido.status).toBe(400)
+  })
+
+  it('opera produção e entrega com o catálogo criado no cadastro', async () => {
+    const res = await registrar({
+      login: 'fabio',
+      nome: 'Fábio Reis',
+      empresa: 'Cerâmica Reis',
+      cargo: 'gestor'
+    })
+    const token = res.body.accessToken
+    const autorizacao = { Authorization: `Bearer ${token}` }
+
+    const referencia = await ctx.request(ctx.app).get('/api/catalogo/referencia').set(autorizacao)
+    const { turnos, produtos, lotes, obras, veiculos } = referencia.body
+
+    const producao = await ctx
+      .request(ctx.app)
+      .post('/api/producoes')
+      .set(autorizacao)
+      .send({
+        id: randomUUID(),
+        turno_id: turnos[0].id,
+        data_producao: new Date().toISOString().slice(0, 10),
+        criado_em_cliente: new Date().toISOString(),
+        itens: [
+          {
+            id: randomUUID(),
+            produto_id: produtos[0].id,
+            lote_id: lotes[0].id,
+            quantidade_produzida: 100,
+            quantidade_refugo: 0,
+            consumo_argila: 1.2
+          }
+        ]
+      })
+
+    expect(producao.status).toBe(201)
+    expect(producao.body.status).toBe('ACEITO')
+
+    const entrega = await ctx
+      .request(ctx.app)
+      .post('/api/entregas')
+      .set(autorizacao)
+      .send({
+        id: randomUUID(),
+        obra_id: obras[0].id,
+        veiculo_id: veiculos[0].id,
+        criado_em_cliente: new Date().toISOString(),
+        itens: [
+          { id: randomUUID(), lote_id: lotes[0].id, produto_id: produtos[0].id, quantidade: 50 }
+        ]
+      })
+
+    expect(entrega.status).toBe(201)
+    expect(entrega.body.status).toBe('ACEITO')
   })
 
   it('registra o cadastro na auditoria sem armazenar a senha', async () => {

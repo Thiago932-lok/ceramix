@@ -10,6 +10,7 @@ Projeto desenvolvido para o desafio **INTEGRA SENAI 2026** (Cerâmica Integra).
 
 - **Offline-first de verdade** — registros de produção e entrega entram em uma fila local (IndexedDB) e são enviados quando a conexão volta, com idempotência por ID de cliente.
 - **Rastreabilidade completa** — cada criação, validação, confirmação e cancelamento gera auditoria com usuário, dispositivo e horário.
+- **Conta própria em minutos** — o cadastro público cria a empresa, o primeiro usuário com cargo e um catálogo inicial; o login pede apenas usuário e senha.
 - **RBAC no servidor** — seis perfis com permissões explícitas; a interface esconde o que o perfil não pode fazer, mas a API é quem decide.
 - **Sessão segura** — access token curto (15 min por padrão), refresh rotativo persistido com hash, cookies `httpOnly` e revogação de dispositivo.
 - **Nada é apagado** — cancelamentos são lógicos, exigem motivo e revertem o estoque quando possível.
@@ -65,6 +66,15 @@ O `npm run setup` instala dependências, gera os ícones da PWA, aplica as migra
 | `motorista`  | `123456` | Motorista  |
 
 O seed cria uma semana de produção coerente, três lotes com saldo, duas entregas (uma concluída com linha do tempo e outra em andamento) e três registros de auditoria. Ele é idempotente: se já houver empresa cadastrada, não faz nada.
+
+### Criar uma conta
+
+A tela **Criar conta** (`/cadastro`) é pública. Ela cria uma nova empresa, o primeiro usuário com o **cargo** escolhido e um catálogo inicial com três turnos, cinco motivos de refugo, um produto, um lote, um cliente, uma obra, um veículo e uma meta diária.
+
+- O cargo (Administrador, Gestor, Supervisor, Operador, Conferente ou Motorista) vira o perfil de acesso e define as permissões no servidor. No login, informe apenas usuário e senha.
+- Cada conta enxerga somente os dados da própria empresa.
+- O usuário de acesso é único em toda a base; duas empresas não podem usar o mesmo login.
+- Escolha **Administrador** se você for o responsável por configurar a conta e criar os demais usuários.
 
 ## Scripts
 
@@ -122,7 +132,7 @@ ceramix/
 │     │  ├─ components/     # layout, ícones, UI base
 │     │  ├─ context/        # auth, sincronização, toasts, diálogos
 │     │  ├─ lib/            # cliente HTTP, Dexie, formatadores
-│     │  └─ pages/          # login, home, produção, entregas, dashboard…
+│     │  └─ pages/          # login, cadastro, home, produção, entregas, dashboard…
 │     └─ vite.config.js     # PWA, proxy /api e build
 ├─ docs/                    # arquitetura, API e operação
 ├─ scripts/                 # geração de ícones da PWA
@@ -157,6 +167,7 @@ O container da API aplica as migrações na inicialização. Com `SEED_ON_START=
 - NF-e, integração fiscal e telemetria IoT ficam fora do MVP.
 - GPS é registrado a partir da localização informada pelo navegador; não há rastreamento contínuo do veículo.
 - O ambiente de demonstração usa senhas simples (`123456`); troque todas antes de qualquer uso real.
+- O cadastro público é aberto por padrão, com limite de 10 contas por hora por IP. Em produção, avalie restringir a rota `/cadastro` no proxy reverso, adicionar verificação de e-mail ou aprovação manual de empresas.
 
 ## Licença
 

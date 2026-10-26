@@ -90,6 +90,14 @@ O seed só roda com o banco vazio. Ele cria:
 
 > **Atenção:** o seed usa a senha `123456` e não deve ser executado em ambiente real.
 
+### Cadastro de novas empresas
+
+A rota pública `/cadastro` permite que uma nova empresa crie a própria conta. Cada cadastro cria, em transação, a empresa, o primeiro usuário com o cargo escolhido e um catálogo inicial; a conta já entra autenticada e só enxerga os próprios dados.
+
+- O login é único em toda a base. Se o usuário já existir em outra empresa, o cadastro retorna `409`.
+- O limite é de 10 cadastros por hora por IP. Atrás de proxy reverso, mantenha `TRUST_PROXY` correto para o limite usar o IP real.
+- Em ambientes controlados, restrinja `/cadastro` no proxy reverso (ou remova o link do login) até definir uma política de autoatendimento, verificação de e-mail ou aprovação de empresas.
+
 ### Reiniciar a demonstração
 
 O reset apaga o banco. Faça backup antes se houver qualquer dado importante:
@@ -183,8 +191,9 @@ docker compose cp api:/data/backup-2026-10-26.db ./backup-2026-10-26.db
 2. HTTPS obrigatório no proxy reverso (cookies `Secure` só trafegam em TLS).
 3. `CORS_ORIGIN` restrito ao domínio real do app.
 4. `SEED_ON_START=false` e nenhum usuário de demonstração ativo.
-5. Backup automático do SQLite com teste de restauração.
-6. Monitoramento externo do `/api/health` e alerta de indisponibilidade.
-7. `TRUST_PROXY` alinhado à topologia para IP real, rate limit e auditoria corretos.
-8. Política de retenção de logs, auditoria e tokens definida.
-9. Testes e build passando no CI antes do deploy.
+5. Política de cadastro público definida (restringir `/cadastro`, verificação de e-mail ou aprovação manual).
+6. Backup automático do SQLite com teste de restauração.
+7. Monitoramento externo do `/api/health` e alerta de indisponibilidade.
+8. `TRUST_PROXY` alinhado à topologia para IP real, rate limit e auditoria corretos.
+9. Política de retenção de logs, auditoria e tokens definida.
+10. Testes e build passando no CI antes do deploy.

@@ -264,7 +264,11 @@ CREATE INDEX IF NOT EXISTS idx_obras_cliente ON obras(empresa_id, cliente_id);
   const loginDuplicado = db
     .prepare('SELECT login FROM usuarios GROUP BY login HAVING COUNT(*) > 1 LIMIT 1')
     .get()
-  if (!loginDuplicado) {
+  if (loginDuplicado) {
+    console.warn(
+      `Login duplicado na base (${loginDuplicado.login}); o índice único global não foi criado.`
+    )
+  } else {
     db.exec('CREATE UNIQUE INDEX IF NOT EXISTS idx_usuarios_login ON usuarios(login)')
   }
 }

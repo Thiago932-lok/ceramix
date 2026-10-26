@@ -2,6 +2,24 @@
 
 Todas as mudanças relevantes do projeto são registradas aqui. O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o versionamento segue [SemVer](https://semver.org/lang/pt-BR/).
 
+## [1.2.0] - 2026-10-26
+
+### Adicionado
+
+- Cadastro público de contas em `/cadastro`: cria a empresa, o primeiro usuário com cargo e um catálogo inicial (turnos, motivos, produto, lote, cliente, obra, veículo e meta).
+- Campo de cargo no cadastro (Administrador, Gestor, Supervisor, Operador, Conferente ou Motorista) vinculado ao RBAC, sem pedir cargo no login.
+- Endpoint `POST /auth/registrar` com senha mínima de 8 caracteres, CNPJ opcional validado, limite de 10 cadastros por hora e auditoria `registro`.
+- Sessão automática após o cadastro, com dispositivo, tokens e catálogo inicial salvo no IndexedDB.
+- Nome da empresa na sessão (`empresaNome`) e na home, reforçando o isolamento multiempresa.
+- Testes de cadastro, unicidade de login, catálogo inicial, isolamento por empresa e RBAC por cargo.
+
+### Alterado
+
+- Login agora pede apenas usuário e senha e ganhou link para criar conta.
+- `usuarios.login` passou a ter índice único global; o cadastro de usuários também valida unicidade entre empresas.
+- Layout das telas públicas extraído para `AuthLayout`, compartilhado entre login e cadastro.
+- Documentação de API, arquitetura, operação e README atualizados.
+
 ## [1.1.0] - 2026-10-26
 
 ### Adicionado
