@@ -1,0 +1,9 @@
+node_modules
+dist
+dev-dist
+coverage
+package-lock.json
+apps/api/data
+*.db
+*.db-shm
+*.db-wal
